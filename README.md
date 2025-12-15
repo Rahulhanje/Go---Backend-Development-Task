@@ -59,7 +59,29 @@ Response:
 
 ## Running the Application
 
-### With Docker (Recommended)
+### Option 1: Using Cloud PostgreSQL (Aiven, Neon, etc.)
+
+1. Get your PostgreSQL connection URL from your cloud provider (e.g., Aiven, Neon, Supabase, ElephantSQL)
+
+2. Create a `.env` file in the root directory:
+```env
+DATABASE_URL=postgres://username:password@hostname:port/database?sslmode=require
+SERVER_PORT=3000
+```
+
+3. Run migration:
+```bash
+go run cmd/migrate/main.go
+```
+
+4. Run the application:
+```bash
+go run cmd/server/main.go
+```
+
+API will be available at `http://localhost:3000`
+
+### Option 2: With Docker (Local)
 
 ```bash
 docker-compose up --build
@@ -67,26 +89,26 @@ docker-compose up --build
 
 API will be available at `http://localhost:3000`
 
-### Without Docker
+### Option 3: Local PostgreSQL
 
 1. Create PostgreSQL database:
 ```sql
 CREATE DATABASE userdb;
 ```
 
-2. Run migration:
-```bash
-psql -d userdb -f db/migrations/001_create_users_table.up.sql
+2. Create `.env` file:
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_NAME=userdb
+SERVER_PORT=3000
 ```
 
-3. Set environment variables:
+3. Run migration:
 ```bash
-export DB_HOST=localhost
-export DB_PORT=5432
-export DB_USER=postgres
-export DB_PASSWORD=postgres
-export DB_NAME=userdb
-export SERVER_PORT=3000
+go run cmd/migrate/main.go
 ```
 
 4. Run the application:
@@ -104,12 +126,28 @@ go test ./... -v
 
 | Variable      | Default    | Description          |
 |--------------|------------|----------------------|
+| DATABASE_URL | -          | Full PostgreSQL URL (for cloud DBs) |
 | DB_HOST      | localhost  | Database host        |
 | DB_PORT      | 5432       | Database port        |
 | DB_USER      | postgres   | Database user        |
 | DB_PASSWORD  | postgres   | Database password    |
 | DB_NAME      | userdb     | Database name        |
 | SERVER_PORT  | 3000       | Server port          |
+
+> **Note:** If `DATABASE_URL` is set, it takes priority over individual DB variables.
+
+## Testing with Postman
+
+1. Start the server: `go run cmd/server/main.go`
+2. Use Base URL: `http://localhost:3000`
+
+| Method | Endpoint | Body (JSON) |
+|--------|----------|-------------|
+| POST | `/users` | `{"name": "John", "dob": "2000-05-15"}` |
+| GET | `/users` | - |
+| GET | `/users/:id` | - |
+| PUT | `/users/:id` | `{"name": "Jane", "dob": "1999-03-20"}` |
+| DELETE | `/users/:id` | - |
 
 ## Features
 
